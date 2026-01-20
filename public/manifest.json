@@ -1,0 +1,48 @@
+{
+  "name": "Nova Work - Red Profesional Local",
+  "short_name": "Nova Work",
+  "description": "Plataforma de networking profesional y búsqueda de empleo local",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1F17",
+  "theme_color": "#0FA36B",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "social"],
+  "shortcuts": [
+    {
+      "name": "Buscar Trabajos",
+      "short_name": "Trabajos",
+      "description": "Ver ofertas de trabajo cercanas",
+      "url": "/feed",
+      "icons": [{ "src": "/icon-192.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mensajes",
+      "short_name": "Chat",
+      "description": "Ver tus conversaciones",
+      "url": "/chat",
+      "icons": [{ "src": "/icon-192.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mi Perfil",
+      "short_name": "Perfil",
+      "description": "Ver y editar tu perfil",
+      "url": "/u/miperfil",
+      "icons": [{ "src": "/icon-192.jpg", "sizes": "192x192" }]
+    }
+  ]
+}

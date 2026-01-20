@@ -1,0 +1,131 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import type { User } from "@supabase/supabase-js"
+
+interface UserProfile {
+  id: string
+  username?: string
+  full_name?: string
+  email?: string
+  avatar_url?: string
+  role?: "recruiter" | "candidate" | "admin"
+}
+
+interface AuthContextType {
+  user: User | null
+  profile: UserProfile | null
+  isLoading: boolean
+  isAuthenticated: boolean
+  signOut: () => Promise<void>
+  refetch: () => Promise<void>
+}
+
+export function useAuth(): AuthContextType {
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const fetchUserData = async () => {
+    try {
+      const supabase = createClient()
+      if (!supabase) {
+        setUser(null)
+        setProfile(null)
+        setIsLoading(false)
+        return
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      setUser(user || null)
+
+      if (user) {
+        // Fetch user profile from database
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("id, username, full_name, email, avatar_url, role")
+          .eq("id", user.id)
+          .maybeSingle()
+
+        setProfile(profileData || { id: user.id, email: user.email })
+      } else {
+        setProfile(null)
+      }
+    } catch (error) {
+      setUser(null)
+      setProfile(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // Set a timeout to force completion after 5 seconds
+    const loadingTimeout = setTimeout(() => {
+      setIsLoading(false)
+    }, 5000)
+
+    fetchUserData().finally(() => {
+      clearTimeout(loadingTimeout)
+    })
+
+    // Subscribe to auth changes
+    const supabase = createClient()
+    if (!supabase) return
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user || null)
+
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("id, username, full_name, email, avatar_url, role")
+          .eq("id", session.user.id)
+          .maybeSingle()
+
+        setProfile(profileData || { id: session.user.id, email: session.user.email })
+      } else {
+        setProfile(null)
+      }
+
+      // Always set loading to false after handling auth change
+      setIsLoading(false)
+    })
+
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [])
+
+  const signOut = async () => {
+    try {
+      const supabase = createClient()
+      if (!supabase) return
+
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+    } catch (error) {
+      // Error handling
+    }
+  }
+
+  const refetch = async () => {
+    await fetchUserData()
+  }
+
+  return {
+    user,
+    profile,
+    isLoading,
+    isAuthenticated: !!user,
+    signOut,
+    refetch,
+  }
+}
