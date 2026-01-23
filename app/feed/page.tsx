@@ -52,8 +52,14 @@ export default function FeedPage() {
   >([])
   const [candidates, setCandidates] = useState<Profile[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -68,7 +74,7 @@ export default function FeedPage() {
         },
       )
     }
-  }, [])
+  }, [isClient])
 
   useEffect(() => {
     async function fetchData() {
@@ -114,6 +120,14 @@ export default function FeedPage() {
     fetchData()
   }, [userLocation, selectedRadius, selectedCategory, selectedModality, selectedType])
 
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <span className="text-muted-foreground text-lg animate-pulse">Cargando...</span>
+      </div>
+    )
+  }
+
   const filteredJobs = jobs
     .filter((job) => {
       if (showLast24h) {
@@ -142,384 +156,6 @@ export default function FeedPage() {
           return 0
       }
     })
-
-  const filteredCandidates = candidates.filter((candidate) => {
-    if (
-      searchQuery &&
-      !candidate.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !candidate.profession?.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      return false
-    }
-    return true
-  })
-
-  const requestLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          })
-          setLocationPermission("granted")
-        },
-        () => {
-          setLocationPermission("denied")
-        },
-      )
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-primary/10 animate-fade-in">
-      <Navigation />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {locationPermission !== "granted" && (
-          <Card className="mb-6 border-accent/20 bg-gradient-to-r from-accent/10 to-background/80 backdrop-blur-xl shadow-lg animate-fade-in-up">
-            <CardContent className="flex items-center justify-between p-4">
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-5 h-5 text-accent" />
-                <div>
-                  <p className="font-medium">Activá tu ubicación</p>
-                  <p className="text-sm text-muted-foreground">
-                    Para mostrarte empleos cerca tuyo, necesitamos acceso a tu ubicación
-                  </p>
-                </div>
-              </div>
-              <Button onClick={requestLocation} size="sm">
-                Activar ubicación
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-        {/* Featured Section */}
-        {jobs.length > 0 && (
-          <div className="mb-8 animate-fade-in-up">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-extrabold text-2xl bg-gradient-to-r from-foreground via-accent to-foreground bg-clip-text text-transparent">✨ Destacadas</h2>
-              <p className="text-sm text-muted-foreground">Ofertas de empresas verificadas</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {jobs
-                .filter((job) => job.companies?.is_verified === true)
-                .slice(0, 3)
-                .map((job) => (
-                  <Link key={job.id} href={`/job/${job.id}`}>
-                    <Card className="h-full hover:shadow-2xl transition-shadow cursor-pointer group border-accent/20 hover:border-accent/50 bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
-                      <CardContent className="p-6 space-y-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg group-hover:text-accent transition-colors leading-snug">
-                                {job.title}
-                              </h3>
-                              {job.companies?.is_verified && (
-                                <Verified className="w-4 h-4 text-blue-600 flex-shrink-0 animate-bounce" />
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">{job.companies?.name}</p>
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground line-clamp-2">{job.description}</p>
-
-                        <div className="flex flex-wrap gap-2 pt-2 border-t">
-                          {job.modality && <Badge variant="outline" className="text-xs">{job.modality}</Badge>}
-                          {(job.salary_min || job.salary_max) && (
-                            <Badge className="text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
-                              {job.salary_min && `$${job.salary_min}`}
-                              {job.salary_min && job.salary_max && " - "}
-                              {job.salary_max && `$${job.salary_max}`}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-            </div>
-          </div>
-        )}
-        <div className="space-y-4 mb-8 animate-fade-in-up">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-accent animate-pulse" />
-            <Input
-              placeholder="Buscar empleos, empresas o ubicaciones..."
-              className="pl-10 pr-4 h-12 text-base rounded-xl bg-white/80 dark:bg-[#1a2f26]/80 shadow-md focus:ring-accent/40 animate-fade-in"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-4 animate-fade-in-up">
-            <Select value={selectedRadius} onValueChange={setSelectedRadius}>
-              <SelectTrigger className="w-[140px]">
-                <MapPin className="w-4 h-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 km</SelectItem>
-                <SelectItem value="3">3 km</SelectItem>
-                <SelectItem value="5">5 km</SelectItem>
-                <SelectItem value="10">10 km</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[160px]">
-                <Briefcase className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
-                <SelectItem value="tech">Tecnología</SelectItem>
-                <SelectItem value="oficios">Oficios</SelectItem>
-                <SelectItem value="ventas">Ventas</SelectItem>
-                <SelectItem value="gastronomia">Gastronomía</SelectItem>
-                <SelectItem value="salud">Salud</SelectItem>
-                <SelectItem value="logistica">Logística</SelectItem>
-                <SelectItem value="educacion">Educación</SelectItem>
-                <SelectItem value="admin">Administración</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedModality} onValueChange={setSelectedModality}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Modalidad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="presencial">Presencial</SelectItem>
-                <SelectItem value="remoto">Remoto</SelectItem>
-                <SelectItem value="híbrido">Híbrido</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="tiempo_completo">Tiempo completo</SelectItem>
-                <SelectItem value="medio_tiempo">Medio tiempo</SelectItem>
-                <SelectItem value="freelance">Freelance</SelectItem>
-                <SelectItem value="por_proyecto">Por proyecto</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="distance">Más cercano</SelectItem>
-                <SelectItem value="recent">Más reciente</SelectItem>
-                <SelectItem value="relevant">Más relevante</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant={showLast24h ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowLast24h(!showLast24h)}
-              className="flex items-center space-x-2"
-            >
-              <Clock className="w-4 h-4" />
-              <span>Últimas 24h</span>
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-6 animate-fade-in-up">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-            <TabsList className="bg-gradient-to-r from-accent/10 to-primary/10 backdrop-blur-xl rounded-xl shadow-md">
-              <TabsTrigger value="jobs" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-accent/20 data-[state=active]:shadow-lg transition-all">
-                <Briefcase className="w-4 h-4" />
-                <span>Ofertas ({jobs.length})</span>
-              </TabsTrigger>
-              <TabsTrigger value="candidates" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-accent/20 data-[state=active]:shadow-lg transition-all">
-                <Users className="w-4 h-4" />
-                <span>Candidatos ({candidates.length})</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="flex items-center space-x-2 animate-fade-in-up">
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="sm"
-              className="rounded-xl shadow-md"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === "map" ? "default" : "outline"}
-              size="sm"
-              className="rounded-xl shadow-md"
-              onClick={() => setViewMode("map")}
-            >
-              <Map className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        <Tabs value={activeTab} className="w-full">
-          <TabsContent value="jobs">
-            {viewMode === "list" ? (
-              <div className="space-y-4">
-                {isLoading ? (
-                  <Card className="p-12 text-center">
-                    <div className="animate-pulse space-y-4">
-                      <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
-                      <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
-                    </div>
-                  </Card>
-                ) : filteredJobs.length === 0 ? (
-                  <Card className="p-12 text-center">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <AlertCircle className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="font-heading font-semibold text-lg mb-2">No hay empleos disponibles</h3>
-                    <p className="text-muted-foreground mb-4">Probá cambiar los filtros o ser el primero en publicar</p>
-                    <Link href="/post">
-                      <Button>Publicar empleo</Button>
-                    </Link>
-                  </Card>
-                ) : (
-                  filteredJobs.map((job) => <JobCard key={job.id} job={job} />)
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex gap-4 mb-4">
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="tech">Tecnología</SelectItem>
-                      <SelectItem value="oficios">Oficios</SelectItem>
-                      <SelectItem value="ventas">Ventas</SelectItem>
-                      <SelectItem value="gastronomia">Gastronomía</SelectItem>
-                      <SelectItem value="salud">Salud</SelectItem>
-                      <SelectItem value="logistica">Logística</SelectItem>
-                      <SelectItem value="educacion">Educación</SelectItem>
-                      <SelectItem value="admin">Administración</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedRadius} onValueChange={setSelectedRadius}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Radio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 km</SelectItem>
-                      <SelectItem value="3">3 km</SelectItem>
-                      <SelectItem value="5">5 km</SelectItem>
-                      <SelectItem value="10">10 km</SelectItem>
-                      <SelectItem value="all">Sin filtro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <MapView
-                  markers={filteredJobs
-                    .filter((job) => job.lat && job.lng)
-                    .map((job) => ({
-                      id: job.id,
-                      type: "job",
-                      lat: job.lat,
-                      lng: job.lng,
-                      title: job.title,
-                      subtitle: job.location_text || "",
-                    }))}
-                  center={userLocation || { lat: -34.6037, lng: -58.3816 }}
-                  zoom={13}
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="candidates">
-            {viewMode === "list" ? (
-              <div className="space-y-4">
-                {isLoading ? (
-                  <Card className="p-12 text-center">
-                    <div className="animate-pulse space-y-4">
-                      <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
-                      <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
-                    </div>
-                  </Card>
-                ) : filteredCandidates.length === 0 ? (
-                  <Card className="p-12 text-center">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Users className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="font-heading font-semibold text-lg mb-2">No hay candidatos disponibles</h3>
-                    <p className="text-muted-foreground">Probá cambiar los términos de búsqueda</p>
-                  </Card>
-                ) : (
-                  filteredCandidates.map((candidate) => <CandidateCard key={candidate.id} candidate={candidate} />)
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex gap-4 mb-4">
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="tech">Tecnología</SelectItem>
-                      <SelectItem value="oficios">Oficios</SelectItem>
-                      <SelectItem value="ventas">Ventas</SelectItem>
-                      <SelectItem value="gastronomia">Gastronomía</SelectItem>
-                      <SelectItem value="salud">Salud</SelectItem>
-                      <SelectItem value="logistica">Logística</SelectItem>
-                      <SelectItem value="educacion">Educación</SelectItem>
-                      <SelectItem value="admin">Administración</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedRadius} onValueChange={setSelectedRadius}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Radio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 km</SelectItem>
-                      <SelectItem value="3">3 km</SelectItem>
-                      <SelectItem value="5">5 km</SelectItem>
-                      <SelectItem value="10">10 km</SelectItem>
-                      <SelectItem value="all">Sin filtro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <MapView
-                  markers={filteredCandidates
-                    .filter((c) => c.lat && c.lng)
-                    .map((c) => ({
-                      id: c.id,
-                      type: "candidate",
-                      lat: c.lat,
-                      lng: c.lng,
-                      title: c.full_name || "Candidato",
-                      subtitle: c.profession || "",
-                    }))}
-                  center={userLocation || { lat: -34.6037, lng: -58.3816 }}
-                  zoom={13}
-                />
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <Footer />
-    </div>
-  )
 }
 
 function JobCard({

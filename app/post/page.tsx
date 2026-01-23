@@ -321,7 +321,7 @@ export default function PostJobPage() {
                         </div>
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                           <div className="flex items-center space-x-4">
-                            <span>📍 {formData.location || "Ubicación"}</span>
+                            <span>📍 {formData.location.raw || "Ubicación"}</span>
                             <span>🕒 hace unos minutos</span>
                           </div>
                         </div>

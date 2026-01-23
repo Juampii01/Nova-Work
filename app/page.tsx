@@ -8,6 +8,15 @@ const AIAssistant = dynamic(() => import("@/components/ai-assistant").then((mod)
   ssr: false,
 })
 
+
+import dynamic from "next/dynamic"
+import { Navigation } from "@/components/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { ArrowRight, CheckCircle, Shield, MapPin, Search, MessageCircle, Zap } from "lucide-react"
+
+export default function Page() {
   return (
     <div className="min-h-screen bg-background relative">
       <Navigation />
