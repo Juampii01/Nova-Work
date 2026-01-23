@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { LocationInput, LocationData } from "@/components/location-input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -28,13 +29,20 @@ export default function PostJobPage() {
     modality: "",
     type: "",
     salary: "",
-    location: "",
+    location: {
+      city: "",
+      region: "",
+      country: "",
+      lat: null,
+      lng: null,
+      raw: "",
+    } as LocationData,
     includesSalary: false,
   })
   const router = useRouter()
   const { toast } = useToast()
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | LocationData) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -89,7 +97,12 @@ export default function PostJobPage() {
         category: formData.category,
         modality: formData.modality as any,
         job_type: formData.type as any,
-        location_text: formData.location,
+        location_text: formData.location.raw,
+        city: formData.location.city,
+        region: formData.location.region,
+        country: formData.location.country,
+        lat: formData.location.lat,
+        lng: formData.location.lng,
         show_salary: formData.includesSalary,
         ...(formData.includesSalary && {
           salary_min,
@@ -274,25 +287,13 @@ export default function PostJobPage() {
                 </div>
 
                 {/* Location */}
-                <div className="space-y-2">
-                  <Label htmlFor="location">
-                    Ubicación <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="location"
-                      placeholder="ej. Palermo, CABA - Villa Crespo, CABA"
-                      className="pl-10"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange("location", e.target.value)}
-                      required
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Usamos tu ubicación para mostrar la oferta a candidatos cercanos
-                  </p>
-                </div>
+                <LocationInput
+                  value={formData.location}
+                  onChange={(value) => handleInputChange("location", value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Usamos tu ubicación para mostrar la oferta a candidatos cercanos
+                </p>
 
                 {/* Preview Card */}
                 <div className="border-t pt-6">

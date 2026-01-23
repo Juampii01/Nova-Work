@@ -13,14 +13,16 @@ interface ApplyButtonProps {
 }
 
 export function ApplyButton({ jobId }: ApplyButtonProps) {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, profile } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
+  const [jobOwnerId, setJobOwnerId] = useState<string | null>(null)
 
   useEffect(() => {
     if (user?.id) {
       checkIfApplied()
+      fetchJobOwner()
     }
   }, [user?.id, jobId])
 
@@ -31,6 +33,16 @@ export function ApplyButton({ jobId }: ApplyButtonProps) {
       setHasApplied(applied)
     } catch (error) {
       console.error("Error checking application:", error)
+    }
+  }
+
+  const fetchJobOwner = async () => {
+    try {
+      const res = await fetch(`/api/job-owner?id=${jobId}`)
+      const data = await res.json()
+      setJobOwnerId(data?.owner_id || null)
+    } catch (error) {
+      setJobOwnerId(null)
     }
   }
 
@@ -65,6 +77,16 @@ export function ApplyButton({ jobId }: ApplyButtonProps) {
     }
   }
 
+  if (jobOwnerId && user?.id === jobOwnerId) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Button disabled className="gap-2 bg-muted text-muted-foreground border border-muted-foreground/30">
+          Este aviso es tuyo
+        </Button>
+        <Button variant="outline" onClick={() => router.push('/dashboard?tab=postulaciones')}>Ver postulaciones</Button>
+      </div>
+    )
+  }
   if (hasApplied) {
     return (
       <Button disabled className="gap-2 bg-green-500/20 text-green-700 border border-green-300 hover:bg-green-500/30">
@@ -73,7 +95,6 @@ export function ApplyButton({ jobId }: ApplyButtonProps) {
       </Button>
     )
   }
-
   return (
     <Button
       onClick={handleApply}

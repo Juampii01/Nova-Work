@@ -24,7 +24,8 @@ import {
   AlertCircle,
 } from "lucide-react"
 import Link from "next/link"
-import { getJobs, getProfiles, type Job as DBJob, type Profile } from "@/lib/supabase/database"
+import { getJobs, getJobsNear, getProfiles, getProfilesNear, type Job as DBJob, type Profile } from "@/lib/supabase/database"
+import { MapView, MapMarker } from "@/components/map-view"
 
 export default function FeedPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -73,14 +74,35 @@ export default function FeedPage() {
     async function fetchData() {
       setIsLoading(true)
       try {
-        const [jobsData, profilesData] = await Promise.all([
-          getJobs({
+        let jobsData = []
+        if (userLocation && selectedRadius !== "all") {
+          jobsData = await getJobsNear({
+            lat: userLocation.lat,
+            lng: userLocation.lng,
+            radiusKm: Number(selectedRadius),
+            filters: {
+              category: selectedCategory !== "all" ? selectedCategory : undefined,
+              modality: selectedModality !== "all" ? selectedModality : undefined,
+              job_type: selectedType !== "all" ? selectedType : undefined,
+            },
+          })
+        } else {
+          jobsData = await getJobs({
             category: selectedCategory !== "all" ? selectedCategory : undefined,
             modality: selectedModality !== "all" ? selectedModality : undefined,
             job_type: selectedType !== "all" ? selectedType : undefined,
-          }),
-          getProfiles(),
-        ])
+          })
+        }
+        let profilesData = []
+        if (userLocation && selectedRadius !== "all") {
+          profilesData = await getProfilesNear({
+            lat: userLocation.lat,
+            lng: userLocation.lng,
+            radiusKm: Number(selectedRadius),
+          })
+        } else {
+          profilesData = await getProfiles()
+        }
         setJobs(jobsData)
         setCandidates(profilesData)
       } catch (error) {
@@ -90,7 +112,7 @@ export default function FeedPage() {
       }
     }
     fetchData()
-  }, [selectedCategory, selectedModality, selectedType])
+  }, [userLocation, selectedRadius, selectedCategory, selectedModality, selectedType])
 
   const filteredJobs = jobs
     .filter((job) => {
@@ -150,12 +172,12 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-primary/10 animate-fade-in">
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {locationPermission !== "granted" && (
-          <Card className="mb-6 border-accent/20 bg-accent/5">
+          <Card className="mb-6 border-accent/20 bg-gradient-to-r from-accent/10 to-background/80 backdrop-blur-xl shadow-lg animate-fade-in-up">
             <CardContent className="flex items-center justify-between p-4">
               <div className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5 text-accent" />
@@ -174,18 +196,18 @@ export default function FeedPage() {
         )}
         {/* Featured Section */}
         {jobs.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-8 animate-fade-in-up">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-bold text-2xl">✨ Destacadas</h2>
+              <h2 className="font-heading font-extrabold text-2xl bg-gradient-to-r from-foreground via-accent to-foreground bg-clip-text text-transparent">✨ Destacadas</h2>
               <p className="text-sm text-muted-foreground">Ofertas de empresas verificadas</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {jobs
                 .filter((job) => job.companies?.is_verified === true)
                 .slice(0, 3)
                 .map((job) => (
                   <Link key={job.id} href={`/job/${job.id}`}>
-                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group border-accent/20 hover:border-accent/50">
+                    <Card className="h-full hover:shadow-2xl transition-shadow cursor-pointer group border-accent/20 hover:border-accent/50 bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
                       <CardContent className="p-6 space-y-4">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
@@ -194,7 +216,7 @@ export default function FeedPage() {
                                 {job.title}
                               </h3>
                               {job.companies?.is_verified && (
-                                <Verified className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                <Verified className="w-4 h-4 text-blue-600 flex-shrink-0 animate-bounce" />
                               )}
                             </div>
                             <p className="text-sm text-muted-foreground">{job.companies?.name}</p>
@@ -220,18 +242,18 @@ export default function FeedPage() {
             </div>
           </div>
         )}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-4 mb-8 animate-fade-in-up">
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-accent animate-pulse" />
             <Input
               placeholder="Buscar empleos, empresas o ubicaciones..."
-              className="pl-10 pr-4 h-12 text-base"
+              className="pl-10 pr-4 h-12 text-base rounded-xl bg-white/80 dark:bg-[#1a2f26]/80 shadow-md focus:ring-accent/40 animate-fade-in"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 animate-fade-in-up">
             <Select value={selectedRadius} onValueChange={setSelectedRadius}>
               <SelectTrigger className="w-[140px]">
                 <MapPin className="w-4 h-4 mr-2" />
@@ -311,24 +333,25 @@ export default function FeedPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 animate-fade-in-up">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-            <TabsList>
-              <TabsTrigger value="jobs" className="flex items-center space-x-2">
+            <TabsList className="bg-gradient-to-r from-accent/10 to-primary/10 backdrop-blur-xl rounded-xl shadow-md">
+              <TabsTrigger value="jobs" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-accent/20 data-[state=active]:shadow-lg transition-all">
                 <Briefcase className="w-4 h-4" />
                 <span>Ofertas ({jobs.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="candidates" className="flex items-center space-x-2">
+              <TabsTrigger value="candidates" className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-accent/20 data-[state=active]:shadow-lg transition-all">
                 <Users className="w-4 h-4" />
                 <span>Candidatos ({candidates.length})</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 animate-fade-in-up">
             <Button
               variant={viewMode === "list" ? "default" : "outline"}
               size="sm"
+              className="rounded-xl shadow-md"
               onClick={() => setViewMode("list")}
             >
               <List className="w-4 h-4" />
@@ -336,6 +359,7 @@ export default function FeedPage() {
             <Button
               variant={viewMode === "map" ? "default" : "outline"}
               size="sm"
+              className="rounded-xl shadow-md"
               onClick={() => setViewMode("map")}
             >
               <Map className="w-4 h-4" />
@@ -370,39 +394,125 @@ export default function FeedPage() {
                 )}
               </div>
             ) : (
-              <Card className="h-96 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <Map className="w-16 h-16 text-muted-foreground mx-auto" />
-                  <div>
-                    <h3 className="font-heading font-semibold text-lg">Vista de mapa</h3>
-                    <p className="text-muted-foreground">Próximamente disponible</p>
-                  </div>
+              <div className="space-y-4">
+                <div className="flex gap-4 mb-4">
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="tech">Tecnología</SelectItem>
+                      <SelectItem value="oficios">Oficios</SelectItem>
+                      <SelectItem value="ventas">Ventas</SelectItem>
+                      <SelectItem value="gastronomia">Gastronomía</SelectItem>
+                      <SelectItem value="salud">Salud</SelectItem>
+                      <SelectItem value="logistica">Logística</SelectItem>
+                      <SelectItem value="educacion">Educación</SelectItem>
+                      <SelectItem value="admin">Administración</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedRadius} onValueChange={setSelectedRadius}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Radio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 km</SelectItem>
+                      <SelectItem value="3">3 km</SelectItem>
+                      <SelectItem value="5">5 km</SelectItem>
+                      <SelectItem value="10">10 km</SelectItem>
+                      <SelectItem value="all">Sin filtro</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </Card>
+                <MapView
+                  markers={filteredJobs
+                    .filter((job) => job.lat && job.lng)
+                    .map((job) => ({
+                      id: job.id,
+                      type: "job",
+                      lat: job.lat,
+                      lng: job.lng,
+                      title: job.title,
+                      subtitle: job.location_text || "",
+                    }))}
+                  center={userLocation || { lat: -34.6037, lng: -58.3816 }}
+                  zoom={13}
+                />
+              </div>
             )}
           </TabsContent>
 
           <TabsContent value="candidates">
-            <div className="space-y-4">
-              {isLoading ? (
-                <Card className="p-12 text-center">
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
-                    <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
-                  </div>
-                </Card>
-              ) : filteredCandidates.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-heading font-semibold text-lg mb-2">No hay candidatos disponibles</h3>
-                  <p className="text-muted-foreground">Probá cambiar los términos de búsqueda</p>
-                </Card>
-              ) : (
-                filteredCandidates.map((candidate) => <CandidateCard key={candidate.id} candidate={candidate} />)
-              )}
-            </div>
+            {viewMode === "list" ? (
+              <div className="space-y-4">
+                {isLoading ? (
+                  <Card className="p-12 text-center">
+                    <div className="animate-pulse space-y-4">
+                      <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
+                      <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
+                    </div>
+                  </Card>
+                ) : filteredCandidates.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Users className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-heading font-semibold text-lg mb-2">No hay candidatos disponibles</h3>
+                    <p className="text-muted-foreground">Probá cambiar los términos de búsqueda</p>
+                  </Card>
+                ) : (
+                  filteredCandidates.map((candidate) => <CandidateCard key={candidate.id} candidate={candidate} />)
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex gap-4 mb-4">
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="tech">Tecnología</SelectItem>
+                      <SelectItem value="oficios">Oficios</SelectItem>
+                      <SelectItem value="ventas">Ventas</SelectItem>
+                      <SelectItem value="gastronomia">Gastronomía</SelectItem>
+                      <SelectItem value="salud">Salud</SelectItem>
+                      <SelectItem value="logistica">Logística</SelectItem>
+                      <SelectItem value="educacion">Educación</SelectItem>
+                      <SelectItem value="admin">Administración</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedRadius} onValueChange={setSelectedRadius}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Radio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 km</SelectItem>
+                      <SelectItem value="3">3 km</SelectItem>
+                      <SelectItem value="5">5 km</SelectItem>
+                      <SelectItem value="10">10 km</SelectItem>
+                      <SelectItem value="all">Sin filtro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <MapView
+                  markers={filteredCandidates
+                    .filter((c) => c.lat && c.lng)
+                    .map((c) => ({
+                      id: c.id,
+                      type: "candidate",
+                      lat: c.lat,
+                      lng: c.lng,
+                      title: c.full_name || "Candidato",
+                      subtitle: c.profession || "",
+                    }))}
+                  center={userLocation || { lat: -34.6037, lng: -58.3816 }}
+                  zoom={13}
+                />
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -428,32 +538,21 @@ function JobCard({
   const [isSaved, setIsSaved] = useState(false)
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-2xl transition-shadow bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <Link href={`/job/${job.id}`} className="hover:text-accent transition-colors">
-                  <h3 className="font-heading font-semibold text-lg">{job.title}</h3>
+                  <h3 className="font-heading font-semibold text-lg animate-fade-in-up">{job.title}</h3>
                 </Link>
-                <div className="flex items-center space-x-2 mt-1">
-                  {job.companies ? (
-                    <>
-                      <Link
-                        href={`/company/${job.companies.slug}`}
-                        className="text-muted-foreground hover:text-accent transition-colors"
-                      >
-                        {job.companies.name}
-                      </Link>
-                      {job.companies.is_verified && (
-                        <div className="flex items-center" aria-label="Empresa verificada">
-                          <Verified className="w-4 h-4 text-blue-500" />
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-muted-foreground">Empresa no especificada</span>
+                <div className="flex flex-col gap-1 mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    Publicado por: {job.owner_profile?.full_name || job.owner_profile?.username || 'Usuario'}
+                  </span>
+                  {job.companies?.name && (
+                    <span className="text-xs text-muted-foreground">Organización: {job.companies.name}</span>
                   )}
                 </div>
               </div>
@@ -461,34 +560,34 @@ function JobCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSaved(!isSaved)}
-                className="text-muted-foreground hover:text-accent"
+                className="text-muted-foreground hover:text-accent transition-all animate-fade-in"
               >
-                <Heart className={`w-4 h-4 ${isSaved ? "fill-accent text-accent" : ""}`} />
+                <Heart className={`w-4 h-4 ${isSaved ? "fill-accent text-accent animate-bounce" : ""}`} />
               </Button>
             </div>
 
             {job.description && (
-              <p className="text-muted-foreground text-sm line-clamp-2">{job.description}</p>
+              <p className="text-muted-foreground text-sm line-clamp-2 animate-fade-in-up">{job.description}</p>
             )}
 
             <div className="flex flex-wrap gap-2">
               {job.category && (
-                <Badge variant="secondary" className="text-xs font-medium">
+                <Badge variant="secondary" className="text-xs font-medium animate-fade-in-up">
                   {job.category}
                 </Badge>
               )}
               {job.modality && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs animate-fade-in-up">
                   {job.modality}
                 </Badge>
               )}
               {job.job_type && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs animate-fade-in-up">
                   {job.job_type}
                 </Badge>
               )}
               {(job.salary_min || job.salary_max) && (
-                <Badge className="text-xs flex items-center space-x-1 bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
+                <Badge className="text-xs flex items-center space-x-1 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 animate-fade-in-up">
                   <DollarSign className="w-3 h-3" />
                   <span>
                     {job.salary_min
@@ -508,7 +607,11 @@ function JobCard({
                 {job.location_text && (
                   <div className="flex items-center space-x-1">
                     <MapPin className="w-3 h-3" />
-                    <span>{job.location_text}</span>
+                    <span>
+                      {job.city && job.region && job.country
+                        ? `${job.city}, ${job.region}, ${job.country}`
+                        : job.location_text}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center space-x-1">
@@ -517,12 +620,12 @@ function JobCard({
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Button size="sm" variant="outline" className="bg-transparent text-muted-foreground hover:text-foreground">
+                <Button size="sm" variant="outline" className="bg-transparent text-muted-foreground hover:text-foreground rounded-xl animate-fade-in">
                   <MessageCircle className="w-3 h-3 mr-1" />
                   Contactar
                 </Button>
                 <Link href={`/job/${job.id}`}>
-                  <Button size="sm">Ver detalles</Button>
+                  <Button size="sm" className="rounded-xl animate-fade-in">Ver detalles</Button>
                 </Link>
               </div>
             </div>
@@ -535,10 +638,10 @@ function JobCard({
 
 function CandidateCard({ candidate }: { candidate: Profile }) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-2xl transition-shadow bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0 animate-fade-in">
             {candidate.avatar_url ? (
               <img
                 src={candidate.avatar_url || "/placeholder.svg"}
@@ -553,12 +656,12 @@ function CandidateCard({ candidate }: { candidate: Profile }) {
             <div className="flex items-start justify-between">
               <div>
                 <Link href={`/u/${candidate.username}`} className="hover:text-accent transition-colors">
-                  <h3 className="font-heading font-semibold text-lg">{candidate.full_name || "Usuario"}</h3>
+                  <h3 className="font-heading font-semibold text-lg animate-fade-in-up">{candidate.full_name || "Usuario"}</h3>
                 </Link>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="text-muted-foreground">{candidate.profession || "Profesional"}</span>
-                  {candidate.is_verified && <Verified className="w-4 h-4 text-accent" />}
-                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                  {candidate.is_verified && <Verified className="w-4 h-4 text-accent animate-bounce" />}
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 animate-fade-in-up">
                     Disponible
                   </Badge>
                 </div>
@@ -566,7 +669,7 @@ function CandidateCard({ candidate }: { candidate: Profile }) {
             </div>
 
             {candidate.bio && (
-              <p className="text-muted-foreground text-sm line-clamp-2">{candidate.bio}</p>
+              <p className="text-muted-foreground text-sm line-clamp-2 animate-fade-in-up">{candidate.bio}</p>
             )}
 
             <div className="flex items-center justify-between text-sm text-muted-foreground pt-2 border-t">
@@ -582,12 +685,12 @@ function CandidateCard({ candidate }: { candidate: Profile }) {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Button size="sm" variant="outline" className="bg-transparent text-muted-foreground hover:text-foreground">
+                <Button size="sm" variant="outline" className="bg-transparent text-muted-foreground hover:text-foreground rounded-xl animate-fade-in">
                   <MessageCircle className="w-3 h-3 mr-1" />
                   Contactar
                 </Button>
                 <Link href={`/u/${candidate.username}`}>
-                  <Button size="sm">Ver perfil</Button>
+                  <Button size="sm" className="rounded-xl animate-fade-in">Ver perfil</Button>
                 </Link>
               </div>
             </div>

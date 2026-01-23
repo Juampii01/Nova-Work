@@ -38,6 +38,7 @@ export default function JobDetailPage() {
 
   useEffect(() => {
     loadJobData()
+     registerJobView()
   }, [jobId])
 
   const loadJobData = async () => {
@@ -51,6 +52,29 @@ export default function JobDetailPage() {
     setLoading(false)
   }
 
+    // Registrar vista en job_views
+    const registerJobView = async () => {
+      if (!jobId) return
+      // Obtener usuario y session
+      let userId = null
+      let sessionId = null
+      try {
+        const res = await fetch('/api/auth/me')
+        const { userId: uid, sessionId: sid } = await res.json()
+        userId = uid
+        sessionId = sid || (typeof window !== 'undefined' ? window.localStorage.getItem('session_id') : null)
+        if (!sessionId && typeof window !== 'undefined') {
+          sessionId = crypto.randomUUID()
+          window.localStorage.setItem('session_id', sessionId)
+        }
+      } catch {}
+      // Deduplicar por 24h
+      await fetch('/api/job-view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId, userId, sessionId })
+      })
+    }
   const handleSave = async () => {
     const success = await saveJob(jobId)
     if (success) {
@@ -60,7 +84,33 @@ export default function JobDetailPage() {
 
   const handleContact = async () => {
     setIsContactLoading(true)
-    router.push(`/chat?job=${jobId}`)
+    // Obtener owner del job
+    const ownerId = job?.posted_by
+    if (!ownerId) {
+      setIsContactLoading(false)
+      return
+    }
+    // Obtener usuario autenticado
+    const res = await fetch('/api/auth/me')
+    const { userId } = await res.json()
+    if (!userId || userId === ownerId) {
+      setIsContactLoading(false)
+      return
+    }
+    // Buscar conversación existente
+    const convoRes = await fetch(`/api/conversation?user1=${userId}&user2=${ownerId}`)
+    const { conversationId } = await convoRes.json()
+    // Si no existe, crear mensaje inicial
+    if (!conversationId) {
+      await fetch('/api/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId: userId, recipientId: ownerId, content: `Hola, estoy interesado en tu oferta: ${job.title}`, jobId })
+      })
+    }
+    // Redirigir a /messages con el thread del owner
+    router.push(`/messages?user=${ownerId}`)
+    setIsContactLoading(false)
   }
 
   const handleShare = async () => {
@@ -135,16 +185,12 @@ export default function JobDetailPage() {
                   <div className="space-y-4">
                     <div>
                       <h1 className="font-heading font-bold text-3xl lg:text-4xl text-balance">{job.title}</h1>
-                      <div className="flex items-center space-x-3 mt-2">
-                        <div className="flex items-center space-x-2">
-                          <Building className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-lg text-muted-foreground">{job.company_name}</span>
-                        </div>
-                        {job.is_verified && (
-                          <div className="flex items-center space-x-1">
-                            <Verified className="w-4 h-4 text-accent" />
-                            <span className="text-sm text-accent">Verificado</span>
-                          </div>
+                      <div className="flex flex-col gap-1 mt-2">
+                        <span className="text-sm text-muted-foreground">
+                          Publicado por: {job.owner_profile?.full_name || job.owner_profile?.username || 'Usuario'}
+                        </span>
+                        {job.companies?.name && (
+                          <span className="text-xs text-muted-foreground">Organización: {job.companies.name}</span>
                         )}
                       </div>
                     </div>
@@ -375,15 +421,15 @@ export default function JobDetailPage() {
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Vistas</span>
-                      <span>127</span>
+                      <span>{job.views ?? 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Postulaciones</span>
-                      <span>23</span>
+                      <span>{job.applications_count ?? 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Guardado por</span>
-                      <span>15 personas</span>
+                      <span>{job.saved_count ?? 0} personas</span>
                     </div>
                   </div>
                 </CardContent>

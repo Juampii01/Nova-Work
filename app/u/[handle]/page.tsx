@@ -63,7 +63,7 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-primary/10 animate-fade-in">
         <Navigation />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-4">
@@ -78,10 +78,10 @@ export default function UserProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-primary/10 animate-fade-in">
         <Navigation />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card>
+          <Card className="bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
             <CardContent className="p-8 text-center">
               <h2 className="text-2xl font-bold mb-2">Perfil no encontrado</h2>
               <p className="text-muted-foreground mb-4">El usuario que buscas no existe</p>
@@ -97,24 +97,24 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-primary/10 animate-fade-in">
       <Navigation />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {/* Back Button */}
-          <Link href="/feed" className="inline-flex items-center text-muted-foreground hover:text-foreground">
+          <Link href="/feed" className="inline-flex items-center text-muted-foreground hover:text-foreground animate-fade-in-left">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a candidatos
           </Link>
 
           {/* Profile Header */}
-          <Card>
+          <Card className="bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl shadow-2xl animate-fade-in-up">
             <CardContent className="p-8">
               <div className="flex flex-col lg:flex-row gap-8">
                 {/* Avatar and Basic Info */}
                 <div className="flex flex-col items-center lg:items-start space-y-4">
-                  <div className="w-32 h-32 bg-accent/10 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-32 h-32 bg-accent/10 rounded-full flex items-center justify-center overflow-hidden animate-fade-in">
                     {user.avatar_url ? (
                       <img
                         src={user.avatar_url || "/placeholder.svg"}
@@ -127,20 +127,25 @@ export default function UserProfilePage() {
                   </div>
                   <div className="text-center lg:text-left">
                     <div className="flex items-center space-x-2 justify-center lg:justify-start">
-                      <h1 className="font-heading font-bold text-2xl">{user.full_name}</h1>
-                      {user.is_verified && <Verified className="w-5 h-5 text-accent" />}
+                      <h1 className="font-heading font-bold text-2xl animate-fade-in-up">{user.full_name}</h1>
+                      {user.is_verified && <Verified className="w-5 h-5 text-accent animate-bounce" />}
                     </div>
-                    <p className="text-lg text-muted-foreground">{user.profession}</p>
+                    <p className="text-lg text-muted-foreground animate-fade-in-up">{user.profession}</p>
                     <div className="flex items-center space-x-4 mt-2 justify-center lg:justify-start text-sm text-muted-foreground">
-                      {user.location_text && (
+                      {(user.city && user.region && user.country) ? (
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-4 h-4" />
+                          <span>{`${user.city}, ${user.region}, ${user.country}`}</span>
+                        </div>
+                      ) : user.location_text ? (
                         <div className="flex items-center space-x-1">
                           <MapPin className="w-4 h-4" />
                           <span>{user.location_text}</span>
                         </div>
-                      )}
+                      ) : null}
                       {user.average_rating && (
                         <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 animate-bounce" />
                           <span>{user.average_rating?.toFixed(1)}</span>
                         </div>
                       )}
@@ -153,7 +158,7 @@ export default function UserProfilePage() {
                   {user.bio && (
                     <div>
                       <h2 className="font-heading font-semibold text-lg mb-2">Acerca de</h2>
-                      <p className="text-muted-foreground leading-relaxed">{user.bio}</p>
+                      <p className="text-muted-foreground leading-relaxed animate-fade-in-up">{user.bio}</p>
                     </div>
                   )}
 
@@ -162,7 +167,7 @@ export default function UserProfilePage() {
                       <h3 className="font-heading font-semibold mb-3">Habilidades</h3>
                       <div className="flex flex-wrap gap-2">
                         {user.skills.map((skill: string) => (
-                          <Badge key={skill} variant="secondary">
+                          <Badge key={skill} variant="secondary" className="animate-fade-in-up">
                             {skill}
                           </Badge>
                         ))}
@@ -182,20 +187,20 @@ export default function UserProfilePage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button onClick={handleConnect} disabled={isConnecting || isConnected} className="flex-1">
+                  <div className="flex flex-col sm:flex-row gap-3 animate-fade-in-up">
+                    <Button onClick={handleConnect} disabled={isConnecting || isConnected} className="flex-1 rounded-xl shadow-md">
                       <UserPlus className="w-4 h-4 mr-2" />
                       {isConnecting ? "Conectando..." : isConnected ? "Conectado" : "Conectar"}
                     </Button>
-                    <Button onClick={handleContact} variant="outline" className="flex-1 bg-transparent">
+                    <Button onClick={handleContact} variant="outline" className="flex-1 bg-transparent rounded-xl shadow-md">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Contactar
                     </Button>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="icon" className="bg-transparent">
+                      <Button variant="outline" size="icon" className="bg-transparent rounded-xl shadow-md">
                         <Share2 className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="icon" className="bg-transparent">
+                      <Button variant="outline" size="icon" className="bg-transparent rounded-xl shadow-md">
                         <Flag className="w-4 h-4" />
                       </Button>
                     </div>
@@ -206,26 +211,26 @@ export default function UserProfilePage() {
           </Card>
 
           {/* Profile Content */}
-          <Tabs defaultValue="reviews" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="reviews">Reseñas</TabsTrigger>
-              <TabsTrigger value="experience">Experiencia</TabsTrigger>
-              <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+          <Tabs defaultValue="reviews" className="w-full animate-fade-in-up">
+            <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-accent/10 to-primary/10 backdrop-blur-xl rounded-xl shadow-md">
+              <TabsTrigger value="reviews" className="rounded-xl data-[state=active]:bg-accent/20 data-[state=active]:shadow-lg transition-all">Reseñas</TabsTrigger>
+              <TabsTrigger value="experience" className="rounded-xl data-[state=active]:bg-accent/20 data-[state=active]:shadow-lg transition-all">Experiencia</TabsTrigger>
+              <TabsTrigger value="portfolio" className="rounded-xl data-[state=active]:bg-accent/20 data-[state=active]:shadow-lg transition-all">Portfolio</TabsTrigger>
             </TabsList>
 
             {/* Reviews Tab */}
-            <TabsContent value="reviews" className="space-y-6">
+            <TabsContent value="reviews" className="space-y-6 animate-fade-in-up">
               <AdvancedReviews userId={user.id} canLeaveReview={true} />
             </TabsContent>
 
             {/* Experience Tab */}
-            <TabsContent value="experience" className="space-y-6">
-              <Card>
+            <TabsContent value="experience" className="space-y-6 animate-fade-in-up">
+              <Card className="bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
                 <CardContent className="p-6">
                   <h3 className="font-heading font-semibold text-lg mb-6">Experiencia laboral</h3>
                   <div className="space-y-6">
                     <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0 animate-fade-in">
                         <Briefcase className="w-6 h-6 text-accent" />
                       </div>
                       <div className="flex-1">
@@ -242,7 +247,7 @@ export default function UserProfilePage() {
                     <Separator />
 
                     <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0 animate-fade-in">
                         <Briefcase className="w-6 h-6 text-accent" />
                       </div>
                       <div className="flex-1">
@@ -259,19 +264,19 @@ export default function UserProfilePage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
                 <CardContent className="p-6">
                   <h3 className="font-heading font-semibold text-lg mb-6">Certificaciones</h3>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
-                      <Award className="w-5 h-5 text-accent" />
+                      <Award className="w-5 h-5 text-accent animate-bounce" />
                       <div>
                         <p className="font-medium">Certificación en Carpintería Avanzada</p>
                         <p className="text-sm text-muted-foreground">Instituto Técnico Buenos Aires • 2017</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <Award className="w-5 h-5 text-accent" />
+                      <Award className="w-5 h-5 text-accent animate-bounce" />
                       <div>
                         <p className="font-medium">Curso de Seguridad Laboral</p>
                         <p className="text-sm text-muted-foreground">UOCRA • 2019</p>
@@ -283,14 +288,14 @@ export default function UserProfilePage() {
             </TabsContent>
 
             {/* Portfolio Tab */}
-            <TabsContent value="portfolio" className="space-y-6">
-              <Card>
+            <TabsContent value="portfolio" className="space-y-6 animate-fade-in-up">
+              <Card className="bg-gradient-to-br from-white/80 to-accent/10 dark:from-[#1a2f26]/80 dark:to-accent/10 backdrop-blur-xl animate-fade-in-up">
                 <CardContent className="p-6">
                   <h3 className="font-heading font-semibold text-lg mb-6">Trabajos realizados</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {[1, 2, 3, 4].map((item) => (
                       <div key={item} className="space-y-3">
-                        <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                        <div className="aspect-video bg-muted rounded-lg flex items-center justify-center animate-fade-in">
                           <span className="text-muted-foreground">Imagen del proyecto {item}</span>
                         </div>
                         <div>

@@ -1,3 +1,69 @@
+// Obtener perfiles cerca de una ubicación (lat/lng, radio en km)
+export async function getProfilesNear({ lat, lng, radiusKm = 10, filters }: { lat: number; lng: number; radiusKm?: number; filters?: { profession?: string; isVerified?: boolean } }) {
+  const supabase = getSupabase()
+  let query = supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  // Filtro por distancia usando PostGIS ST_DWithin
+  query = query.filter(
+    "location",
+    "st_dwithin",
+    `SRID=4326;POINT(${lng} ${lat}),${radiusKm * 1000}`
+  )
+
+  if (filters?.profession) {
+    query = query.eq("profession", filters.profession)
+  }
+  if (filters?.isVerified !== undefined) {
+    query = query.eq("is_verified", filters.isVerified)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("[v0] Error fetching profiles near:", error)
+    return []
+  }
+
+  return data as Profile[]
+}
+// Obtener jobs cerca de una ubicación (lat/lng, radio en km)
+export async function getJobsNear({ lat, lng, radiusKm = 10, filters }: { lat: number; lng: number; radiusKm?: number; filters?: { category?: string; modality?: string; job_type?: string } }) {
+  const supabase = getSupabase()
+  let query = supabase
+    .from("jobs")
+    .select(`*, companies (id, name, logo_url, slug, is_verified)`)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+
+  // Filtro por distancia usando PostGIS ST_DWithin
+  query = query.filter(
+    "location",
+    "st_dwithin",
+    `SRID=4326;POINT(${lng} ${lat}),${radiusKm * 1000}`
+  )
+
+  if (filters?.category) {
+    query = query.eq("category", filters.category)
+  }
+  if (filters?.modality) {
+    query = query.eq("modality", filters.modality)
+  }
+  if (filters?.job_type) {
+    query = query.eq("job_type", filters.job_type)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("[v0] Error fetching jobs near:", error)
+    return []
+  }
+
+  return data as (Job & { companies?: { id: string; name: string; logo_url?: string; slug: string } })[]
+}
 import { createClient } from "@/lib/supabase/client"
 
 function getSupabase() {
@@ -99,6 +165,7 @@ export async function getJobs(filters?: { category?: string; modality?: string; 
 
 export async function getJob(id: string) {
   const supabase = getSupabase()
+  // Obtener job principal
   const { data, error } = await supabase
     .from("jobs")
     .select(`
@@ -113,12 +180,35 @@ export async function getJob(id: string) {
     .eq("id", id)
     .single()
 
-  if (error) {
+  if (error || !data) {
     console.error("[v0] Error fetching job:", error)
     return null
   }
 
-  return data as Job & { companies?: { id: string; name: string; logo_url?: string; slug: string } }
+  // Contar postulaciones
+  const { count: applications_count } = await supabase
+    .from("applications")
+    .select("id", { count: "exact", head: true })
+    .eq("job_id", id)
+
+  // Contar guardados
+  const { count: saved_count } = await supabase
+    .from("saved_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("job_id", id)
+
+  // Contar vistas
+  const { count: views } = await supabase
+    .from("job_views")
+    .select("id", { count: "exact", head: true })
+    .eq("job_id", id)
+
+  return {
+    ...data,
+    applications_count: applications_count || 0,
+    saved_count: saved_count || 0,
+    views: views || 0,
+  }
 }
 
 export async function getSimilarJobs(category: string, excludeJobId: string, limit = 3) {
@@ -635,6 +725,16 @@ export async function createApplication(jobId: string, userId: string) {
 
   if (existing) {
     return { error: "Ya has aplicado a este job", success: false }
+  }
+
+  // Check if user is owner of the job
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("posted_by")
+    .eq("id", jobId)
+    .single()
+  if (job?.posted_by === userId) {
+    return { error: "No puedes postularte a tu propio aviso", success: false }
   }
 
   // Create application

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { LocationInput, LocationData } from "@/components/location-input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -25,7 +26,14 @@ export default function SettingsPage() {
     hideDistance: false,
     profileVisible: true,
   })
-  const [location, setLocation] = useState("Buenos Aires, Argentina")
+  const [location, setLocation] = useState<LocationData>({
+    city: "",
+    region: "",
+    country: "",
+    lat: null,
+    lng: null,
+    raw: "",
+  })
   const [plan, setPlan] = useState("free")
   const [userId, setUserId] = useState<string | null>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -72,8 +80,12 @@ export default function SettingsPage() {
 
     try {
       await updateProfile(userId, {
-        location_text: location,
-        // Add other fields as needed
+        location_text: location.raw,
+        city: location.city,
+        region: location.region,
+        country: location.country,
+        lat: location.lat,
+        lng: location.lng,
       })
       alert("Configuración guardada")
     } catch (error) {
@@ -199,13 +211,7 @@ export default function SettingsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Ubicación actual</Label>
-                    <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
-                    <p className="text-sm text-muted-foreground">
-                      Esta ubicación se usa para mostrarte empleos cercanos
-                    </p>
-                  </div>
+                  <LocationInput value={location} onChange={setLocation} />
                   <div className="space-y-2">
                     <Label>Radio de búsqueda predeterminado</Label>
                     <Select defaultValue="5">

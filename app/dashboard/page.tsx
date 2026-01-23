@@ -36,6 +36,13 @@ export default function DashboardPage() {
   })
   const router = useRouter()
   const { isAuthenticated, isLoading, user } = useAuth()
+    const { profile } = useAuth()
+    const [settingRole, setSettingRole] = useState(false)
+    const handleSelectRole = async (role: string) => {
+      setSettingRole(true)
+      await import("@/lib/supabase/database").then(({ updateProfile }) => updateProfile(profile.id, { role }))
+      window.location.reload()
+    }
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -206,6 +213,17 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-accent/5 to-background">
+      {/* Onboarding para elegir rol si falta */}
+      {profile && !profile.role && !settingRole && (
+        <>{require("@/components/role-onboarding.tsx").RoleOnboarding({ onSelect: handleSelectRole })}</>
+      )}
+
+      {/* Dashboard dinámico según rol */}
+      {profile?.role === "candidate" ? (
+        <>{require("@/components/candidate-dashboard.tsx").CandidateDashboard()}</>
+      ) : profile?.role === "recruiter" ? (
+        <>{require("@/components/recruiter-dashboard.tsx").RecruiterDashboard({})}</>
+      ) : null}
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

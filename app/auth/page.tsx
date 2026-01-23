@@ -189,34 +189,34 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-primary/10">
       <Navigation />
 
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-lg space-y-8">
-          <div className="text-center space-y-3">
-            <h2 className="font-heading font-bold text-4xl tracking-tight bg-gradient-to-r from-foreground via-accent to-foreground bg-clip-text text-transparent">
+          <div className="text-center space-y-3 animate-fade-in-up">
+            <h2 className="font-heading font-extrabold text-4xl tracking-tight bg-gradient-to-r from-foreground via-accent to-foreground bg-clip-text text-transparent animate-fade-in-up">
               Bienvenido
             </h2>
-            <p className="text-muted-foreground text-lg">Conectate con oportunidades laborales cerca tuyo</p>
+            <p className="text-lg text-muted-foreground animate-fade-in">Conectate con oportunidades laborales cerca tuyo</p>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-14 p-1.5 bg-muted/40 backdrop-blur-sm rounded-xl">
-              <TabsTrigger value="login" className="rounded-lg font-semibold text-base data-[state=active]:shadow-md">
+          <Tabs defaultValue="login" className="w-full animate-fade-in-up">
+            <TabsList className="grid w-full grid-cols-2 h-14 p-1.5 bg-muted/60 backdrop-blur-xl rounded-2xl shadow-md">
+              <TabsTrigger value="login" className="rounded-xl font-semibold text-base data-[state=active]:shadow-lg data-[state=active]:bg-accent/10 transition-all">
                 Iniciar sesión
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                className="rounded-lg font-semibold text-base data-[state=active]:shadow-md"
+                className="rounded-xl font-semibold text-base data-[state=active]:shadow-lg data-[state=active]:bg-accent/10 transition-all"
               >
                 Crear cuenta
               </TabsTrigger>
             </TabsList>
 
             {/* Login Tab */}
-            <TabsContent value="login" className="mt-8">
-              <Card className="border-0 shadow-2xl shadow-black/10 backdrop-blur-sm bg-card/95">
+            <TabsContent value="login" className="mt-8 animate-fade-in-up">
+              <Card className="border-0 shadow-2xl shadow-accent/10 backdrop-blur-xl bg-white/80 dark:bg-[#1a2f26]/80 animate-fade-in-up">
                 <CardHeader className="space-y-3 pb-8">
                   <CardTitle className="text-3xl font-bold">Iniciar sesión</CardTitle>
                   <CardDescription className="text-base">
@@ -228,7 +228,7 @@ export default function AuthPage() {
                     variant="outline"
                     onClick={() => handleSocialAuth("google")}
                     disabled={isLoading}
-                    className="w-full h-14 text-base bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-950/20 border-2 hover:border-red-200 dark:hover:border-red-800 shadow-md transition-all hover:shadow-lg hover:scale-[1.02]"
+                    className="w-full h-14 text-base bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-950/20 border-2 hover:border-red-200 dark:hover:border-red-800 shadow-lg transition-all hover:shadow-2xl hover:scale-105 animate-fade-in"
                   >
                     <Chrome className="mr-3 h-6 w-6 text-red-500" />
                     <span className="font-semibold">Continuar con Google</span>
@@ -320,7 +320,7 @@ export default function AuthPage() {
 
             {/* Register Tab */}
             <TabsContent value="register" className="mt-8">
-              <Card className="border-0 shadow-2xl shadow-black/10 backdrop-blur-sm bg-card/95">
+              <Card className="border-0 shadow-2xl shadow-accent/10 backdrop-blur-xl bg-white/80 dark:bg-[#1a2f26]/80 animate-fade-in-up">
                 <CardHeader className="space-y-3 pb-8">
                   <CardTitle className="text-3xl font-bold">Crear cuenta</CardTitle>
                   <CardDescription className="text-base">
@@ -332,7 +332,7 @@ export default function AuthPage() {
                     variant="outline"
                     onClick={() => handleSocialAuth("google")}
                     disabled={isLoading}
-                    className="w-full h-14 text-base bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-950/20 border-2 hover:border-red-200 dark:hover:border-red-800 shadow-md transition-all hover:shadow-lg hover:scale-[1.02]"
+                    className="w-full h-14 text-base bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-950/20 border-2 hover:border-red-200 dark:hover:border-red-800 shadow-lg transition-all hover:shadow-2xl hover:scale-105 animate-fade-in"
                   >
                     <Chrome className="mr-3 h-6 w-6 text-red-500" />
                     <span className="font-semibold">Registrarse con Google</span>
