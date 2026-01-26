@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
 
@@ -26,6 +27,7 @@ export function useAuth(): AuthContextType {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const pathname = usePathname()
 
   const fetchUserData = async () => {
     try {
@@ -64,44 +66,32 @@ export function useAuth(): AuthContextType {
   }
 
   useEffect(() => {
-    // Set a timeout to force completion after 5 seconds
-    const loadingTimeout = setTimeout(() => {
-      setIsLoading(false)
-    }, 5000)
+    // Forzar refresco de usuario en cada cambio de ruta
+    setIsLoading(true)
+    fetchUserData().finally(() => setIsLoading(false))
 
-    fetchUserData().finally(() => {
-      clearTimeout(loadingTimeout)
-    })
-
-    // Subscribe to auth changes
+    // Suscribirse a cambios de sesión de Supabase
     const supabase = createClient()
     if (!supabase) return
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user || null)
-
       if (session?.user) {
         const { data: profileData } = await supabase
           .from("profiles")
           .select("id, username, full_name, email, avatar_url, role")
           .eq("id", session.user.id)
           .maybeSingle()
-
         setProfile(profileData || { id: session.user.id, email: session.user.email })
       } else {
         setProfile(null)
       }
-
-      // Always set loading to false after handling auth change
       setIsLoading(false)
     })
-
     return () => {
       subscription?.unsubscribe()
     }
-  }, [])
+  }, [pathname])
 
   const signOut = async () => {
     try {
