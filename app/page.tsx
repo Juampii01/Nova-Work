@@ -1,15 +1,14 @@
+import dynamic from "next/dynamic"
 import { HeroBlobs } from "@/components/landing-blobs"
 import { BenefitsBlobs } from "@/components/landing-blobs-benefits"
 import { TestimonialCard } from "@/components/landing-testimonial-card"
+
 const Footer = dynamic(() => import("@/components/footer").then((mod) => mod.Footer), {
   loading: () => <div className="h-64 bg-muted animate-pulse" />, 
 })
 const AIAssistant = dynamic(() => import("@/components/ai-assistant").then((mod) => mod.AIAssistant), {
   ssr: false,
 })
-
-
-import dynamic from "next/dynamic"
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
