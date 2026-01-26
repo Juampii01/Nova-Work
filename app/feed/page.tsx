@@ -154,6 +154,38 @@ export default function FeedPage() {
           return 0
       }
     })
+  return (
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <main className="max-w-7xl mx-auto px-4 py-10">
+        <h1 className="text-3xl font-bold mb-6">Explorar empleos y perfiles</h1>
+        {/* Aquí puedes agregar filtros, tabs, búsqueda, etc. */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Empleos</h2>
+            {isLoading ? (
+              <p className="text-muted-foreground">Cargando empleos...</p>
+            ) : filteredJobs.length === 0 ? (
+              <p className="text-muted-foreground">No se encontraron empleos.</p>
+            ) : (
+              filteredJobs.map((job) => <JobCard key={job.id} job={job} />)
+            )}
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Candidatos</h2>
+            {isLoading ? (
+              <p className="text-muted-foreground">Cargando perfiles...</p>
+            ) : candidates.length === 0 ? (
+              <p className="text-muted-foreground">No se encontraron candidatos.</p>
+            ) : (
+              candidates.map((candidate) => <CandidateCard key={candidate.id} candidate={candidate} />)
+            )}
+          </section>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 }
 
 function JobCard({
