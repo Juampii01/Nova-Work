@@ -106,6 +106,7 @@ export interface Job {
 export interface Profile {
   id: string
   email: string
+  role: "candidate" | "recruiter" | "admin" | null
   full_name?: string
   username?: string
   avatar_url?: string

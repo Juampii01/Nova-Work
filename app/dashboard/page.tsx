@@ -38,9 +38,12 @@ export default function DashboardPage() {
   const { isAuthenticated, isLoading, user } = useAuth()
     const { profile } = useAuth()
     const [settingRole, setSettingRole] = useState(false)
-    const handleSelectRole = async (role: string) => {
+    const handleSelectRole = async (role: "candidate" | "recruiter") => {
+      if (!profile) return
+
       setSettingRole(true)
-      await import("@/lib/supabase/database").then(({ updateProfile }) => updateProfile(profile.id, { role }))
+      const { updateProfile } = await import("@/lib/supabase/database")
+      await updateProfile(profile.id, { role })
       window.location.reload()
     }
 
