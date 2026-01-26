@@ -52,15 +52,13 @@ export default function FeedPage() {
   >([])
   const [candidates, setCandidates] = useState<Profile[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isClient, setIsClient] = useState(false)
+  // const [isClient, setIsClient] = useState(false)
+  // useEffect(() => {
+  //   setIsClient(true)
+  // }, [])
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  useEffect(() => {
-    if (!isClient) return;
-    if (navigator.geolocation) {
+    if (typeof window !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation({
@@ -74,7 +72,7 @@ export default function FeedPage() {
         },
       )
     }
-  }, [isClient])
+  }, [])
 
   useEffect(() => {
     async function fetchData() {
@@ -120,13 +118,13 @@ export default function FeedPage() {
     fetchData()
   }, [userLocation, selectedRadius, selectedCategory, selectedModality, selectedType])
 
-  if (!isClient) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <span className="text-muted-foreground text-lg animate-pulse">Cargando...</span>
-      </div>
-    )
-  }
+  // if (!isClient) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-background">
+  //       <span className="text-muted-foreground text-lg animate-pulse">Cargando...</span>
+  //     </div>
+  //   )
+  // }
 
   const filteredJobs = jobs
     .filter((job) => {
