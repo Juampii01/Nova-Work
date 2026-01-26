@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle, Shield, MapPin, Search, MessageCircle, Zap } from "lucide-react";
 
-const Footer = dynamic(() => import("@/components/footer").then((mod) => mod.Footer), {
+const DynamicFooter = dynamic(() => import("@/components/footer").then((mod) => mod.Footer), {
   loading: () => <div className="h-64 bg-muted animate-pulse" />, 
 });
 const AIAssistant = dynamic(() => import("@/components/ai-assistant").then((mod) => mod.AIAssistant), {
@@ -62,7 +62,7 @@ export default function Page() {
         </div>
       </section>
       {/* ...resto del contenido JSX existente... */}
-      <Footer />
+      <DynamicFooter />
       <AIAssistant />
     </div>
   );
