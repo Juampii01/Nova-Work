@@ -38,15 +38,15 @@ export default function Page() {
               </Link>
               <Link href="/feed">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto bg-transparent hover:bg-accent/10 hover:text-accent border-accent/30">
-                  Explorar empleos
+                  import { Footer } from "@/components/footer";
                 </Button>
               </Link>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground mt-4 animate-fade-in">
               <div className="flex items-center gap-1">
-                <CheckCircle className="w-4 h-4 text-accent" />
-                <span>Gratis para empezar</span>
-              </div>
+                  const AIAssistant = dynamic(() => import("@/components/ai-assistant").then((mod) => mod.AIAssistant), {
+                    ssr: false,
+                  });
               <div className="flex items-center gap-1">
                 <Shield className="w-4 h-4 text-accent" />
                 <span>Perfiles verificados</span>
@@ -94,103 +94,12 @@ export default function Page() {
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:scale-105 transition-transform duration-200">
                   Crear cuenta gratis
                   <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
+                        <Footer />
+                        <AIAssistant />
               <Link href="/feed">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto bg-transparent hover:bg-accent/10 hover:text-accent border-accent/30">
                   Explorar empleos
-                </Button>
-              </Link>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground mt-4 animate-fade-in">
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-4 h-4 text-accent" />
-                <span>Gratis para empezar</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Shield className="w-4 h-4 text-accent" />
-                <span>Perfiles verificados</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4 text-accent" />
-                <span>Búsqueda local</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it Works - cards animadas, líneas conectando */}
-      <section className="py-24 bg-muted/40 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <svg width="100%" height="100%" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,160 C480,320 960,0 1440,160" stroke="#0fa36b22" strokeWidth="8" fill="none" />
-          </svg>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="font-heading font-bold text-4xl lg:text-5xl animate-fade-in-up">¿Cómo funciona?</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">Conectate con oportunidades laborales en 3 simples pasos</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <Card className="text-center p-10 border-0 shadow-xl bg-white/80 dark:bg-[#1a2f26]/80 backdrop-blur-xl transition-transform hover:scale-105 hover:shadow-2xl duration-300 animate-fade-in-up">
-              <CardContent className="space-y-4">
-                <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mx-auto animate-bounce-slow">
-                  <MapPin className="w-10 h-10 text-accent" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-heading font-semibold text-2xl">1. Activá tu ubicación</h3>
-                  <p className="text-muted-foreground">Permitinos conocer tu zona para mostrarte las mejores oportunidades cerca de vos.</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-10 border-0 shadow-xl bg-white/80 dark:bg-[#1a2f26]/80 backdrop-blur-xl transition-transform hover:scale-105 hover:shadow-2xl duration-300 animate-fade-in-up delay-100">
-              <CardContent className="space-y-4">
-                <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mx-auto animate-bounce-slow">
-                  <Search className="w-10 h-10 text-accent" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-heading font-semibold text-2xl">2. Explorá empleos cercanos</h3>
-                  <p className="text-muted-foreground">Descubrí ofertas laborales a menos de 5 km de tu ubicación, filtradas por categoría y modalidad.</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-10 border-0 shadow-xl bg-white/80 dark:bg-[#1a2f26]/80 backdrop-blur-xl transition-transform hover:scale-105 hover:shadow-2xl duration-300 animate-fade-in-up delay-200">
-              <CardContent className="space-y-4">
-                <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mx-auto animate-bounce-slow">
-                  <MessageCircle className="w-10 h-10 text-accent" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-heading font-semibold text-2xl">3. Contactá con verificados</h3>
-                  <p className="text-muted-foreground">Conectate directamente con empleadores y candidatos verificados para mayor confianza.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits - fondo animado, iconos animados, glass */}
-      <section className="py-24 relative overflow-hidden">
-        <BenefitsBlobs />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-10 animate-fade-in-up">
-              <div className="space-y-4">
-                <h2 className="font-heading font-bold text-4xl lg:text-5xl">¿Por qué elegir Nova Work?</h2>
-                <p className="text-xl text-muted-foreground">La primera plataforma que combina red social profesional con búsqueda de empleo local.</p>
-              </div>
-              <div className="space-y-8">
-                <div className="flex items-start gap-5">
-                  <div className="w-14 h-14 bg-accent/20 rounded-xl flex items-center justify-center flex-shrink-0 animate-bounce-slow">
-                    <MapPin className="w-7 h-7 text-accent" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-heading font-semibold text-xl">100% Local</h3>
-                    <p className="text-muted-foreground">Encontrá trabajo cerca de casa. Sin viajes largos, más tiempo para vos.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-5">
+                  // ...existing code...
                   <div className="w-14 h-14 bg-accent/20 rounded-xl flex items-center justify-center flex-shrink-0 animate-bounce-slow delay-100">
                     <Shield className="w-7 h-7 text-accent" />
                   </div>
