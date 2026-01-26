@@ -1,12 +1,72 @@
-import dynamic from "next/dynamic"
-import { HeroBlobs } from "@/components/landing-blobs"
-import { BenefitsBlobs } from "@/components/landing-blobs-benefits"
-import { TestimonialCard } from "@/components/landing-testimonial-card"
-import { Navigation } from "@/components/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight, CheckCircle, Shield, MapPin, Search, MessageCircle, Zap } from "lucide-react"
+
+import dynamic from "next/dynamic";
+import { HeroBlobs } from "@/components/landing-blobs";
+import { BenefitsBlobs } from "@/components/landing-blobs-benefits";
+import { TestimonialCard } from "@/components/landing-testimonial-card";
+import { Navigation } from "@/components/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, CheckCircle, Shield, MapPin, Search, MessageCircle, Zap } from "lucide-react";
+
+const Footer = dynamic(() => import("@/components/footer").then((mod) => mod.Footer), {
+  loading: () => <div className="h-64 bg-muted animate-pulse" />, 
+});
+const AIAssistant = dynamic(() => import("@/components/ai-assistant").then((mod) => mod.AIAssistant), {
+  ssr: false,
+});
+
+export default function Page() {
+  return (
+    <div className="min-h-screen bg-background relative">
+      <Navigation />
+      {/* Hero Section - fondo animado, glass, animaciones */}
+      <section className="relative py-24 lg:py-40 overflow-hidden flex items-center justify-center min-h-[70vh]">
+        <HeroBlobs />
+        <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center gap-10">
+          <div className="backdrop-blur-xl bg-white/70 dark:bg-[#0b1f17]/70 rounded-3xl shadow-2xl border border-accent/10 p-10 md:p-16 animate-fade-in-up">
+            <h1 className="font-heading font-extrabold text-5xl sm:text-6xl lg:text-7xl text-balance tracking-tight mb-4">
+              Trabajo real, <span className="text-accent bg-accent/10 px-2 py-1 rounded-xl shadow-accent/10 animate-pulse">cerca tuyo</span>
+            </h1>
+            <p className="text-2xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in">
+              Buscá y ofrecé empleo en tu localidad. <span className="text-accent font-semibold">Perfiles verificados</span>, mapa de cercanía y conexión directa con empleadores reales.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4 animate-fade-in">
+              <Link href="/auth">
+                <Button size="lg" className="w-full sm:w-auto shadow-lg hover:scale-105 transition-transform duration-200">
+                  Crear cuenta gratis
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+              <Link href="/feed">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto bg-transparent hover:bg-accent/10 hover:text-accent border-accent/30">
+                  Explorar empleos
+                </Button>
+              </Link>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground mt-4 animate-fade-in">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-4 h-4 text-accent" />
+                <span>Gratis para empezar</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Shield className="w-4 h-4 text-accent" />
+                <span>Perfiles verificados</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MapPin className="w-4 h-4 text-accent" />
+                <span>Búsqueda local</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* ...resto del contenido JSX existente... */}
+      <Footer />
+      <AIAssistant />
+    </div>
+  );
+}
 
 const Footer = dynamic(() => import("@/components/footer").then((mod) => mod.Footer), {
   loading: () => <div className="h-64 bg-muted animate-pulse" />, 
