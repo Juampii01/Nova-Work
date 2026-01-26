@@ -2,6 +2,11 @@ import dynamic from "next/dynamic"
 import { HeroBlobs } from "@/components/landing-blobs"
 import { BenefitsBlobs } from "@/components/landing-blobs-benefits"
 import { TestimonialCard } from "@/components/landing-testimonial-card"
+import { Navigation } from "@/components/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { ArrowRight, CheckCircle, Shield, MapPin, Search, MessageCircle, Zap } from "lucide-react"
 
 const Footer = dynamic(() => import("@/components/footer").then((mod) => mod.Footer), {
   loading: () => <div className="h-64 bg-muted animate-pulse" />, 
@@ -9,11 +14,6 @@ const Footer = dynamic(() => import("@/components/footer").then((mod) => mod.Foo
 const AIAssistant = dynamic(() => import("@/components/ai-assistant").then((mod) => mod.AIAssistant), {
   ssr: false,
 })
-import { Navigation } from "@/components/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight, CheckCircle, Shield, MapPin, Search, MessageCircle, Zap } from "lucide-react"
 
 export default function Page() {
   return (
