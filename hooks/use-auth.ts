@@ -45,14 +45,16 @@ export function useAuth(): AuthContextType {
 
       setUser(user || null)
 
-      if (user) {
-        // Fetch user profile from database
-        const { data: profileData } = await supabase
+      if (user && user.id) {
+        // Fetch user profile correctamente: .single() y manejo de error
+        const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, username, full_name, email, avatar_url, role")
           .eq("id", user.id)
-          .maybeSingle()
-
+          .single()
+        if (profileError) {
+          console.error("[useAuth] Error al cargar perfil:", profileError)
+        }
         setProfile(profileData || { id: user.id, email: user.email })
       } else {
         setProfile(null)
@@ -76,12 +78,15 @@ export function useAuth(): AuthContextType {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user || null)
-      if (session?.user) {
-        const { data: profileData } = await supabase
+      if (session?.user && session.user.id) {
+        const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, username, full_name, email, avatar_url, role")
           .eq("id", session.user.id)
-          .maybeSingle()
+          .single()
+        if (profileError) {
+          console.error("[useAuth] Error al cargar perfil (onAuthStateChange):", profileError)
+        }
         setProfile(profileData || { id: session.user.id, email: session.user.email })
       } else {
         setProfile(null)

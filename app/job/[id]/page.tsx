@@ -55,14 +55,14 @@ export default function JobDetailPage() {
     // Registrar vista en job_views
     const registerJobView = async () => {
       if (!jobId) return
-      // Obtener usuario y session
       let userId = null
       let sessionId = null
       try {
-        const res = await fetch('/api/auth/me')
-        const { userId: uid, sessionId: sid } = await res.json()
-        userId = uid
-        sessionId = sid || (typeof window !== 'undefined' ? window.localStorage.getItem('session_id') : null)
+        const { createClient } = await import("@/lib/supabase/client")
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        userId = user?.id || null
+        sessionId = (typeof window !== 'undefined' ? window.localStorage.getItem('session_id') : null)
         if (!sessionId && typeof window !== 'undefined') {
           sessionId = crypto.randomUUID()
           window.localStorage.setItem('session_id', sessionId)
@@ -90,9 +90,14 @@ export default function JobDetailPage() {
       setIsContactLoading(false)
       return
     }
-    // Obtener usuario autenticado
-    const res = await fetch('/api/auth/me')
-    const { userId } = await res.json()
+    // Obtener usuario autenticado directo de Supabase
+    let userId = null
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      userId = user?.id || null
+    } catch {}
     if (!userId || userId === ownerId) {
       setIsContactLoading(false)
       return

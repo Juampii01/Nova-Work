@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -60,7 +61,10 @@ import {
   Trophy,
   Settings,
   HelpCircle,
+  Heart,
 } from "lucide-react"
+
+
 
 function MoreMenuContent() {
   const { setOpen } = useNavDropdown()
@@ -69,6 +73,14 @@ function MoreMenuContent() {
 
   return (
     <div className="w-56 p-1 space-y-1">
+      <Link
+        href="/saved"
+        onClick={close}
+        className="flex items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-muted"
+      >
+        <Heart className="h-4 w-4" />
+        Favoritos
+      </Link>
       <Link
         href="/recommendations"
         onClick={close}

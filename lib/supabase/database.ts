@@ -1,3 +1,55 @@
+// Obtener trabajos guardados por el usuario autenticado
+export async function getSavedJobs() {
+  const supabase = getSupabase();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    console.error("[getSavedJobs] Error fetching user:", authError, user);
+    return [];
+  }
+
+  // Traer los trabajos guardados con detalles del job y la empresa
+  const { data, error } = await supabase
+    .from("saved_jobs")
+    .select(`
+      id,
+      job_id,
+      jobs (
+        *,
+        companies (
+          id,
+          name,
+          logo_url,
+          slug,
+          is_verified
+        )
+      )
+    `)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[getSavedJobs] Error fetching saved jobs:", error);
+    return [];
+  }
+
+  // Normalizar para devolver solo los jobs (con companies) que NO fueron publicados por el usuario
+  return (
+    data?.map((item: any) => {
+      if (!item.jobs) return null;
+      // Excluir empleos publicados por el usuario actual
+      if (item.jobs.posted_by === user.id) return null;
+      return {
+        ...item.jobs,
+        id: item.job_id, // Usar el id real del empleo para el control de favoritos
+        saved_id: item.id,
+      };
+    }).filter(Boolean) || []
+  );
+}
 // Obtener perfiles cerca de una ubicación (lat/lng, radio en km)
 export async function getProfilesNear({ lat, lng, radiusKm = 10, filters }: { lat: number; lng: number; radiusKm?: number; filters?: { profession?: string; isVerified?: boolean } }) {
   const supabase = getSupabase()
@@ -247,24 +299,26 @@ export async function saveJob(jobId: string) {
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    console.error("[v0] Error fetching user:", authError)
+    console.error("[saveJob] Error fetching user:", authError, user)
     return false
   }
 
   // Check if already saved
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("saved_jobs")
     .select("id")
     .eq("user_id", user.id)
     .eq("job_id", jobId)
-    .single()
+    .maybeSingle()
+  if (existingError) {
+    console.error("[saveJob] Error checking existing saved job:", existingError)
+  }
 
   if (existing) {
     // Remove from saved
     const { error } = await supabase.from("saved_jobs").delete().eq("user_id", user.id).eq("job_id", jobId)
-
     if (error) {
-      console.error("[v0] Error removing saved job:", error)
+      console.error("[saveJob] Error removing saved job:", error)
       return false
     }
     return true
@@ -274,9 +328,8 @@ export async function saveJob(jobId: string) {
       user_id: user.id,
       job_id: jobId,
     })
-
     if (error) {
-      console.error("[v0] Error saving job:", error)
+      console.error("[saveJob] Error saving job:", error)
       return false
     }
     return true

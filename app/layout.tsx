@@ -8,6 +8,7 @@ import { Suspense } from "react"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { NavDropdownProvider } from "@/components/nav-dropdown-context"
+import { AuthProvider } from "@/components/auth-provider"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -126,13 +127,16 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${poppins.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <head>
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="nova-work-theme">
-          <NavDropdownProvider>
-            <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-          </NavDropdownProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="nova-work-theme">
+            <NavDropdownProvider>
+              <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+            </NavDropdownProvider>
+          </ThemeProvider>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

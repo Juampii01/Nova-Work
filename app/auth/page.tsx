@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,22 @@ export default function AuthPage() {
   const [acceptTerms, setAcceptTerms] = useState(false)
   const router = useRouter()
 
+  useEffect(() => {
+    const supabase = createClient()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        router.push("/feed")
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -32,13 +48,8 @@ export default function AuthPage() {
       const email = formData.get("email") as string
       const password = formData.get("password") as string
 
-      console.log("[Auth] Form data:", { email, password: "***" })
-
       const supabase = createClient()
-      console.log("[Auth] Supabase client created:", !!supabase)
-
       if (!supabase) {
-        console.error("[Auth] Supabase client is null!")
         toast.error("Error de configuración", {
           description: "El cliente de Supabase no se pudo inicializar",
         })
@@ -46,22 +57,12 @@ export default function AuthPage() {
         return
       }
 
-      console.log("[Auth] Attempting login...")
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log("[Auth] Response:", { hasData: !!data, error: error?.message })
-
       if (error) {
-        console.error("[Auth] Login error details:", {
-          message: error.message,
-          code: error.code,
-          status: error.status,
-          name: error.name,
-        })
-
         if (error.message === "Email not confirmed" || error.code === "email_not_confirmed") {
           toast.error("Email no confirmado", {
             description:
@@ -81,12 +82,9 @@ export default function AuthPage() {
         return
       }
 
-      console.log("[Auth] Login successful")
       toast.success("¡Bienvenido de vuelta!")
       setIsLoading(false)
-      router.push("/feed")
     } catch (err) {
-      console.error("[Auth] Unexpected error:", err)
       toast.error("Error inesperado", {
         description: err instanceof Error ? err.message : "Ocurrió un error inesperado",
       })
@@ -159,7 +157,6 @@ export default function AuthPage() {
         description: "Revisa tu email para confirmar tu cuenta",
       })
       setIsLoading(false)
-      router.push("/feed")
     } catch (err) {
       console.error("[Auth] Unexpected error:", err)
       toast.error("Error inesperado", {
