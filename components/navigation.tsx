@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useNavDropdown } from "@/components/nav-dropdown-context"
 import { NavDropdown } from "@/components/nav-dropdown"
-import { Search, Plus, MessageCircle, User, Menu, X, MoreHorizontal, LogOut, BarChart3 } from "lucide-react"
+import { Search, Plus, MessageCircle, User, Menu, X, MoreHorizontal, LogOut, BarChart3, Heart } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import NotificationsCenter from "./notifications-center"
 import { ThemeToggle } from "./theme-toggle"
@@ -20,10 +20,10 @@ export function Navigation() {
   const pathname = usePathname()
   const router = useRouter()
   const { open, setOpen } = useNavDropdown()
-  const { user, profile, isLoading, isAuthenticated, signOut } = useAuth()
+  const { user, isLoading, isAuthenticated, signOut } = useAuth()
 
-  const isActive = (path: string) => pathname === path || pathname.startsWith(path + "/")
-  const profileLink = profile?.username ? `/u/${profile.username}` : (user?.id ? `/settings` : "/auth")
+  const isActive = (path: string) => pathname ? (pathname === path || pathname.startsWith(path + "/")) : false
+  const profileLink = user?.id ? `/settings` : "/auth"
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -126,7 +126,7 @@ export function Navigation() {
             {isAuthenticated && <NotificationsCenter />}
             <ThemeToggle />
 
-            {/* User Menu or Login Button */}
+            {/* User Menu o Login Button, Favoritos solo en avatar */}
             {isAuthenticated && user ? (
               <div className="relative" ref={userMenuRef}>
                 <Button
@@ -138,14 +138,14 @@ export function Navigation() {
                   disabled={isLoading}
                 >
                   <div className="w-9 h-9 bg-gradient-to-br from-accent/40 to-primary/40 rounded-full flex items-center justify-center text-base font-extrabold text-accent border border-accent/30 shadow-inner">
-                    {profile?.full_name?.charAt(0).toUpperCase() || profile?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
+                    {user?.email?.charAt(0).toUpperCase() || "U"}
                   </div>
                 </Button>
 
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-gradient-to-br from-background/90 via-card/95 to-accent/10 border border-border rounded-2xl shadow-2xl z-50 py-2 animate-fade-in-up">
                     <div className="px-4 py-2 border-b border-border">
-                      <p className="text-sm font-semibold text-foreground">{profile?.full_name || profile?.username || user?.email || "Usuario"}</p>
+                      <p className="text-sm font-semibold text-foreground">{user?.email || "Usuario"}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email || "Sin email"}</p>
                     </div>
 
@@ -160,6 +160,13 @@ export function Navigation() {
                       <div className="flex items-center space-x-2 text-sm text-foreground">
                         <BarChart3 className="w-4 h-4" />
                         <span>Dashboard</span>
+                      </div>
+                    </Link>
+
+                    <Link href="/favorites" className="block px-4 py-2 hover:bg-accent/10 rounded-xl transition-colors" onClick={() => setIsUserMenuOpen(false)}>
+                      <div className="flex items-center space-x-2 text-sm text-foreground">
+                        <Heart className="w-4 h-4" />
+                        <span>Favoritos</span>
                       </div>
                     </Link>
 

@@ -7,15 +7,13 @@ import { Footer } from "@/components/footer"
 import { useAuth } from "@/hooks/use-auth"
 import { getSavedJobs, saveJob } from "@/lib/supabase/database"
 
-
-export default function SavedJobsPage() {
+export default function FavoritesPage() {
   const { user, isAuthenticated } = useAuth()
   const [jobs, setJobs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log("[Favoritos] useEffect ejecutado. user:", user)
     if (!user?.id) {
       setError("No has iniciado sesión. Inicia sesión para ver tus favoritos.")
       setIsLoading(false)
@@ -27,28 +25,22 @@ export default function SavedJobsPage() {
       .then((data) => {
         setJobs(data)
         setIsLoading(false)
-        if (Array.isArray(data) && data.length === 0) {
-          // Si no hay error pero tampoco datos, loguear para depuración
-          console.info("[Favoritos] No se encontraron empleos guardados para este usuario.")
-        }
       })
       .catch((err) => {
         setError("Error al cargar favoritos: " + (err?.message || err))
         setIsLoading(false)
-        console.error("[Favoritos] Error al cargar favoritos:", err)
       })
   }, [user?.id])
 
-  // Handler para quitar favorito y refrescar la lista
   const handleToggleFavorite = async (jobId: string) => {
     try {
-      await saveJob(jobId); // Toggle favorito
-      const updated = await getSavedJobs();
-      setJobs(updated);
+      await saveJob(jobId)
+      const updated = await getSavedJobs()
+      setJobs(updated)
     } catch (err) {
-      setError("Error al actualizar favoritos: " + (typeof err === 'object' && err && 'message' in err ? (err as any).message : String(err)));
+      setError("Error al actualizar favoritos: " + (typeof err === 'object' && err && 'message' in err ? (err as any).message : String(err)))
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -36,12 +36,10 @@ export async function getSavedJobs() {
     return [];
   }
 
-  // Normalizar para devolver solo los jobs (con companies) que NO fueron publicados por el usuario
+  // Normalizar para devolver los jobs guardados (con companies) por el usuario
   return (
     data?.map((item: any) => {
       if (!item.jobs) return null;
-      // Excluir empleos publicados por el usuario actual
-      if (item.jobs.posted_by === user.id) return null;
       return {
         ...item.jobs,
         id: item.job_id, // Usar el id real del empleo para el control de favoritos
@@ -303,7 +301,7 @@ export async function saveJob(jobId: string) {
     return false
   }
 
-  // Check if already saved
+  // Toggle: si ya está guardado, elimina; si no, inserta
   const { data: existing, error: existingError } = await supabase
     .from("saved_jobs")
     .select("id")
@@ -313,9 +311,8 @@ export async function saveJob(jobId: string) {
   if (existingError) {
     console.error("[saveJob] Error checking existing saved job:", existingError)
   }
-
   if (existing) {
-    // Remove from saved
+    // Eliminar de favoritos
     const { error } = await supabase.from("saved_jobs").delete().eq("user_id", user.id).eq("job_id", jobId)
     if (error) {
       console.error("[saveJob] Error removing saved job:", error)
@@ -323,7 +320,7 @@ export async function saveJob(jobId: string) {
     }
     return true
   } else {
-    // Add to saved
+    // Guardar en favoritos
     const { error } = await supabase.from("saved_jobs").insert({
       user_id: user.id,
       job_id: jobId,
@@ -1128,5 +1125,20 @@ export async function getApplicationStatusBreakdown(userId: string) {
   }
 
   return result
+}
+
+export async function updateJob(jobId: string, updates: Partial<Job>) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("jobs")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", jobId)
+    .select()
+    .single();
+  if (error) {
+    console.error("[v0] Error updating job:", error);
+    throw error;
+  }
+  return data as Job;
 }
 

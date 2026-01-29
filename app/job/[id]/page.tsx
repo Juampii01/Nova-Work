@@ -24,22 +24,48 @@ import {
 import Link from "next/link"
 import { getJob, getSimilarJobs, saveJob } from "@/lib/supabase/database"
 import { useParams, useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function JobDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const jobId = params.id as string
+  const jobId = params?.id as string
 
   const [job, setJob] = useState<any>(null)
   const [similarJobs, setSimilarJobs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isSaved, setIsSaved] = useState(false)
   const [isContactLoading, setIsContactLoading] = useState(false)
+  const { user } = useAuth();
+  const isOwnJob = user?.id && job?.posted_by === user.id;
 
   useEffect(() => {
     loadJobData()
-     registerJobView()
+    registerJobView()
+    syncSavedState()
   }, [jobId])
+
+  // Sincronizar estado de favorito al cargar
+  const syncSavedState = async () => {
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data, error } = await supabase
+          .from("saved_jobs")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("job_id", jobId)
+          .maybeSingle()
+        setIsSaved(!!data)
+      } else {
+        setIsSaved(false)
+      }
+    } catch (err) {
+      setIsSaved(false)
+    }
+  }
 
   const loadJobData = async () => {
     setLoading(true)
@@ -76,9 +102,19 @@ export default function JobDetailPage() {
       })
     }
   const handleSave = async () => {
-    const success = await saveJob(jobId)
-    if (success) {
-      setIsSaved(!isSaved)
+    // Bloquear si el trabajo es del usuario actual
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && job?.posted_by === user.id) {
+        alert("No puedes guardar tu propio aviso");
+        return;
+      }
+      await saveJob(jobId); // Toggle en base
+      await syncSavedState(); // Refresca estado real desde la base
+    } catch (err) {
+      console.error("Error en handleSave:", err)
     }
   }
 
@@ -231,11 +267,18 @@ export default function JobDetailPage() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:min-w-[200px]">
-                    <ApplyButton jobId={jobId} />
+                    {!isOwnJob && <ApplyButton jobId={jobId} />}
                     <div className="flex gap-2">
-                      <Button variant="outline" size="icon" onClick={handleSave} className="bg-transparent">
-                        <Heart className={`w-4 h-4 ${isSaved ? "fill-accent text-accent" : ""}`} />
-                      </Button>
+                      {!isOwnJob && (
+                        <Button variant="outline" size="icon" onClick={handleSave} className="bg-transparent">
+                          <Heart className={`w-4 h-4 ${isSaved ? "fill-accent text-accent" : ""}`} />
+                        </Button>
+                      )}
+                      {isOwnJob && (
+                        <Link href={`/job/${jobId}/edit`}>
+                          <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">Editar</Button>
+                        </Link>
+                      )}
                       <Button variant="outline" size="icon" onClick={handleShare} className="bg-transparent">
                         <Share2 className="w-4 h-4" />
                       </Button>
@@ -449,7 +492,7 @@ export default function JobDetailPage() {
                       <MessageCircle className="w-4 h-4 mr-2" />
                       {isContactLoading ? "Contactando..." : "Contactar ahora"}
                     </Button>
-                    <Button variant="outline" className="w-full bg-transparent" onClick={() => setIsSaved(!isSaved)}>
+                    <Button variant="outline" className="w-full bg-transparent" onClick={handleSave}>
                       <Heart className={`w-4 h-4 mr-2 ${isSaved ? "fill-accent text-accent" : ""}`} />
                       {isSaved ? "Guardado" : "Guardar oferta"}
                     </Button>
